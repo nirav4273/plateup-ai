@@ -1,1002 +1,1249 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PlateUp — Fridge to Meal Planner</title>
-<style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  :root {
-    --teal: #0F6E56;
-    --teal-light: #E1F5EE;
-    --teal-mid: #5DCAA5;
-    --teal-dark: #085041;
-    --bg: #f9f9f7;
-    --surface: #ffffff;
-    --border: #e5e5e2;
-    --text: #1a1a1a;
-    --text-2: #555552;
-    --text-3: #888885;
-    --radius: 12px;
-    --radius-sm: 8px;
-  }
-
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    font-size: 15px;
-    line-height: 1.6;
-  }
-
-  header {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 0 24px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 56px;
-  }
-
-  .logo {
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--teal);
-    letter-spacing: -0.3px;
-  }
-
-  .logo span { color: var(--text); font-weight: 400; }
-
-  .badge {
-    font-size: 11px;
-    padding: 3px 10px;
-    border-radius: 99px;
-    background: var(--teal-light);
-    color: var(--teal-dark);
-    font-weight: 500;
-  }
-
-  main {
-    max-width: 720px;
-    margin: 0 auto;
-    padding: 32px 20px 60px;
-  }
-
-  .step-indicator {
-    display: flex;
-    align-items: center;
-    gap: 0;
-    margin-bottom: 32px;
-  }
-
-  .step-dot {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    font-weight: 600;
-    background: var(--border);
-    color: var(--text-3);
-    flex-shrink: 0;
-    transition: all 0.2s;
-  }
-
-  .step-dot.active { background: var(--teal); color: #fff; }
-  .step-dot.done { background: var(--teal-light); color: var(--teal-dark); }
-
-  .step-line {
-    flex: 1;
-    height: 1px;
-    background: var(--border);
-    margin: 0 4px;
-    transition: background 0.2s;
-  }
-
-  .step-line.done { background: var(--teal-mid); }
-
-  .step-label {
-    font-size: 11px;
-    color: var(--text-3);
-    text-align: center;
-    margin-top: 6px;
-  }
-
-  .step-label.active { color: var(--teal); font-weight: 500; }
-
-  .steps-row {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 6px;
-    margin-bottom: 28px;
-  }
-
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 24px;
-    margin-bottom: 16px;
-  }
-
-  .card-title {
-    font-size: 17px;
-    font-weight: 600;
-    margin-bottom: 6px;
-    color: var(--text);
-  }
-
-  .card-sub {
-    font-size: 14px;
-    color: var(--text-2);
-    margin-bottom: 20px;
-    line-height: 1.5;
-  }
-
-  .upload-zone {
-    border: 2px dashed var(--border);
-    border-radius: var(--radius-sm);
-    padding: 40px 20px;
-    text-align: center;
-    cursor: pointer;
-    transition: border-color 0.2s, background 0.2s;
-    position: relative;
-  }
-
-  .upload-zone:hover { border-color: var(--teal-mid); background: var(--teal-light); }
-  .upload-zone.dragover { border-color: var(--teal); background: var(--teal-light); }
-
-  .upload-zone input[type="file"] {
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    cursor: pointer;
-    width: 100%;
-    height: 100%;
-  }
-
-  .upload-icon {
-    width: 48px;
-    height: 48px;
-    margin: 0 auto 12px;
-    background: var(--teal-light);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .upload-icon svg { width: 22px; height: 22px; stroke: var(--teal); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-
-  .upload-title { font-size: 15px; font-weight: 500; margin-bottom: 4px; }
-  .upload-hint { font-size: 13px; color: var(--text-3); }
-
-  .or-divider {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin: 16px 0;
-    color: var(--text-3);
-    font-size: 13px;
-  }
-
-  .or-divider::before, .or-divider::after {
-    content: "";
-    flex: 1;
-    height: 1px;
-    background: var(--border);
-  }
-
-  .camera-btn {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 12px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    background: var(--surface);
-    color: var(--text);
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background 0.15s, border-color 0.15s;
-  }
-
-  .camera-btn:hover { background: var(--bg); border-color: var(--teal-mid); }
-  .camera-btn svg { width: 18px; height: 18px; stroke: var(--teal); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-
-  .preview-wrap {
-    position: relative;
-    border-radius: var(--radius-sm);
-    overflow: hidden;
-    margin-bottom: 16px;
-    background: #000;
-  }
-
-  .preview-wrap img {
-    width: 100%;
-    max-height: 320px;
-    object-fit: cover;
-    display: block;
-  }
-
-  .preview-remove {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: rgba(0,0,0,0.55);
-    border: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    font-size: 16px;
-    line-height: 1;
-  }
-
-  .api-key-row {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 16px;
-  }
-
-  .api-key-row input {
-    flex: 1;
-    padding: 10px 14px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    font-size: 14px;
-    font-family: monospace;
-    background: var(--bg);
-    color: var(--text);
-    outline: none;
-    transition: border-color 0.15s;
-  }
-
-  .api-key-row input:focus { border-color: var(--teal); }
-  .api-key-row input::placeholder { color: var(--text-3); }
-
-  .btn-primary {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 12px 24px;
-    background: var(--teal);
-    color: #fff;
-    border: none;
-    border-radius: var(--radius-sm);
-    font-size: 15px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background 0.15s, opacity 0.15s;
-    width: 100%;
-  }
-
-  .btn-primary:hover { background: var(--teal-dark); }
-  .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
-
-  .btn-secondary {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 10px 20px;
-    background: transparent;
-    color: var(--text);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-
-  .btn-secondary:hover { background: var(--bg); }
-
-  .loading-state {
-    text-align: center;
-    padding: 40px 20px;
-  }
-
-  .spinner {
-    width: 36px;
-    height: 36px;
-    border: 3px solid var(--teal-light);
-    border-top-color: var(--teal);
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-    margin: 0 auto 14px;
-  }
-
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  .loading-title { font-size: 15px; font-weight: 500; margin-bottom: 4px; }
-  .loading-sub { font-size: 13px; color: var(--text-3); }
-
-  .ingredient-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin: 16px 0;
-  }
-
-  .ingredient-tag {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 5px 12px;
-    background: var(--teal-light);
-    color: var(--teal-dark);
-    border-radius: 99px;
-    font-size: 13px;
-    font-weight: 500;
-    border: 1px solid #9FE1CB;
-  }
-
-  .ingredient-tag button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--teal-dark);
-    font-size: 14px;
-    line-height: 1;
-    padding: 0;
-    opacity: 0.6;
-    display: flex;
-    align-items: center;
-  }
-
-  .ingredient-tag button:hover { opacity: 1; }
-
-  .add-ingredient-row {
-    display: flex;
-    gap: 8px;
-    margin-top: 12px;
-  }
-
-  .add-ingredient-row input {
-    flex: 1;
-    padding: 9px 14px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    font-size: 14px;
-    outline: none;
-    background: var(--bg);
-    color: var(--text);
-  }
-
-  .add-ingredient-row input:focus { border-color: var(--teal); }
-
-  .add-ingredient-row button {
-    padding: 9px 16px;
-    background: var(--teal);
-    color: #fff;
-    border: none;
-    border-radius: var(--radius-sm);
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-  }
-
-  .recipe-card {
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    overflow: hidden;
-    margin-bottom: 16px;
-    background: var(--surface);
-    transition: border-color 0.15s;
-  }
-
-  .recipe-card:hover { border-color: var(--teal-mid); }
-
-  /* ── Split top: image left, details right ── */
-  .recipe-top {
-    display: grid;
-    grid-template-columns: 200px 1fr;
-    min-height: 200px;
-  }
-
-  .dish-img-wrap {
-    width: 100%;
-    height: 100%;
-    min-height: 200px;
-    background: var(--bg);
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-
-  .dish-img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
-
-  .dish-img-placeholder {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    color: var(--text-3);
-    font-size: 12px;
-    padding: 16px;
-    text-align: center;
-  }
-
-  .dish-img-placeholder .spinner { width: 22px; height: 22px; border-width: 2px; margin: 0; }
-
-  .recipe-detail {
-    padding: 16px;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    border-left: 1px solid var(--border);
-  }
-
-  .recipe-name {
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--text);
-    margin-bottom: 4px;
-    line-height: 1.3;
-  }
-
-  .cuisine-tag {
-    font-size: 11px;
-    padding: 2px 8px;
-    border-radius: 99px;
-    background: #EDE9FE;
-    color: #5B21B6;
-    font-weight: 500;
-    display: inline-block;
-    margin-bottom: 8px;
-  }
-
-  .recipe-meta {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-bottom: 12px;
-  }
-
-  .meta-pill {
-    font-size: 12px;
-    color: var(--text-2);
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-
-  .meta-pill svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
-
-  .recipe-ingredients-title {
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--text-3);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: 6px;
-  }
-
-  .ing-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 6px; }
-
-  .ing-chip {
-    font-size: 11px;
-    padding: 2px 8px;
-    border-radius: 99px;
-    border: 1px solid;
-  }
-
-  .ing-chip.have { background: var(--teal-light); color: var(--teal-dark); border-color: #9FE1CB; }
-  .ing-chip.need { background: #FEF3C7; color: #92400E; border-color: #FCD34D; }
-
-  .staples-note {
-    font-size: 11px;
-    color: var(--text-3);
-    margin-top: 8px;
-    line-height: 1.4;
-  }
-
-  /* ── Bottom: steps ── */
-  .expand-btn {
-    width: 100%;
-    padding: 11px;
-    background: var(--bg);
-    border: none;
-    border-top: 1px solid var(--border);
-    font-size: 13px;
-    color: var(--teal);
-    font-weight: 500;
-    cursor: pointer;
-    transition: background 0.15s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-  }
-
-  .expand-btn:hover { background: var(--teal-light); }
-  .expand-btn svg { width: 14px; height: 14px; stroke: var(--teal); fill: none; stroke-width: 2; transition: transform 0.2s; }
-  .expand-btn.open svg { transform: rotate(180deg); }
-
-  .recipe-steps {
-    padding: 16px 18px 18px;
-    border-top: 1px solid var(--border);
-    background: var(--surface);
-  }
-
-  .recipe-steps-title {
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--text-3);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: 12px;
-  }
-
-  .step-item {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 12px;
-  }
-
-  .step-item:last-child { margin-bottom: 0; }
-
-  .step-num {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background: var(--teal);
-    color: #fff;
-    font-size: 11px;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    margin-top: 1px;
-  }
-
-  .step-text { font-size: 14px; color: var(--text-2); line-height: 1.55; }
-
-  @media (max-width: 480px) {
-    .recipe-top { grid-template-columns: 1fr; }
-    .dish-img-wrap { min-height: 180px; height: 180px; }
-    .recipe-detail { border-left: none; border-top: 1px solid var(--border); }
-  }
-
-  .error-box {
-    background: #FEF2F2;
-    border: 1px solid #FECACA;
-    border-radius: var(--radius-sm);
-    padding: 14px 16px;
-    color: #991B1B;
-    font-size: 14px;
-    margin-bottom: 16px;
-  }
-
-  .section-actions {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-top: 20px;
-  }
-
-  .info-note {
-    background: #EFF6FF;
-    border: 1px solid #BFDBFE;
-    border-radius: var(--radius-sm);
-    padding: 12px 14px;
-    font-size: 13px;
-    color: #1E40AF;
-    margin-bottom: 16px;
-    line-height: 1.5;
-  }
-
-  .info-note a { color: #1D4ED8; }
-
-  .hidden { display: none !important; }
-
-  .cuisine-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-    gap: 8px;
-    margin: 12px 0 4px;
-  }
-
-  .cuisine-btn {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-    padding: 10px 6px;
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius-sm);
-    background: var(--surface);
-    cursor: pointer;
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--text-2);
-    transition: all 0.15s;
-    text-align: center;
-  }
-
-  .cuisine-btn:hover { border-color: var(--teal-mid); background: var(--teal-light); color: var(--teal-dark); }
-  .cuisine-btn.selected { border-color: var(--teal); background: var(--teal-light); color: var(--teal-dark); }
-  .cuisine-btn .cicon { font-size: 22px; line-height: 1; }
-
-  .error-box {
-    background: #FEF2F2;
-    border: 1px solid #FECACA;
-    border-radius: var(--radius-sm);
-    padding: 14px 16px;
-    color: #991B1B;
-    font-size: 14px;
-    margin-bottom: 16px;
-  }
-
-  .hero {
-    background: linear-gradient(135deg, var(--teal-light) 0%, #fff 60%);
-    border-bottom: 1px solid var(--border);
-    padding: 24px 24px 20px;
-    text-align: center;
-  }
-
-  .hero-logo { font-size: 28px; font-weight: 700; color: var(--teal); letter-spacing: -0.5px; margin-bottom: 8px; }
-  .hero-logo span { color: var(--text); font-weight: 400; }
-  .hero-desc { font-size: 14px; color: var(--text-2); max-width: 460px; margin: 0 auto 10px; line-height: 1.65; }
-  .hero-tags { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; }
-  .hero-tag { font-size: 11px; padding: 3px 10px; border-radius: 99px; background: var(--surface); border: 1px solid var(--border); color: var(--text-3); }
-
-  video {
-    width: 100%;
-    max-height: 300px;
-    object-fit: cover;
-    border-radius: var(--radius-sm);
-    background: #000;
-    display: block;
-    margin-bottom: 10px;
-  }
-
-  .camera-controls {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 16px;
-  }
-
-  .camera-controls button {
-    flex: 1;
-    padding: 10px;
-    border-radius: var(--radius-sm);
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    border: 1px solid var(--border);
-    background: var(--surface);
-    color: var(--text);
-    transition: background 0.15s;
-  }
-
-  .camera-controls button.capture {
-    background: var(--teal);
-    color: #fff;
-    border-color: var(--teal);
-  }
-
-  .camera-controls button:hover { opacity: 0.85; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PlateUp — Fridge to Meal Planner</title>
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --teal: #0F6E56;
+      --teal-light: #E1F5EE;
+      --teal-mid: #5DCAA5;
+      --teal-dark: #085041;
+      --bg: #f9f9f7;
+      --surface: #ffffff;
+      --border: #e5e5e2;
+      --text: #1a1a1a;
+      --text-2: #555552;
+      --text-3: #888885;
+      --radius: 12px;
+      --radius-sm: 8px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 56px;
+    }
+
+    .logo {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--teal);
+      letter-spacing: -0.3px;
+    }
+
+    .logo span {
+      color: var(--text);
+      font-weight: 400;
+    }
+
+    .badge {
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 99px;
+      background: var(--teal-light);
+      color: var(--teal-dark);
+      font-weight: 500;
+    }
+
+    main {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 32px 20px 60px;
+    }
+
+    .step-indicator {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin-bottom: 32px;
+    }
+
+    .step-dot {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      background: var(--border);
+      color: var(--text-3);
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+
+    .step-dot.active {
+      background: var(--teal);
+      color: #fff;
+    }
+
+    .step-dot.done {
+      background: var(--teal-light);
+      color: var(--teal-dark);
+    }
+
+    .step-line {
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+      margin: 0 4px;
+      transition: background 0.2s;
+    }
+
+    .step-line.done {
+      background: var(--teal-mid);
+    }
+
+    .step-label {
+      font-size: 11px;
+      color: var(--text-3);
+      text-align: center;
+      margin-top: 6px;
+    }
+
+    .step-label.active {
+      color: var(--teal);
+      font-weight: 500;
+    }
+
+    .steps-row {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 6px;
+      margin-bottom: 28px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+
+    .card-title {
+      font-size: 17px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+
+    .card-sub {
+      font-size: 14px;
+      color: var(--text-2);
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .upload-zone {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius-sm);
+      padding: 40px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      position: relative;
+    }
+
+    .upload-zone:hover {
+      border-color: var(--teal-mid);
+      background: var(--teal-light);
+    }
+
+    .upload-zone.dragover {
+      border-color: var(--teal);
+      background: var(--teal-light);
+    }
+
+    .upload-zone input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+
+    .upload-icon {
+      width: 48px;
+      height: 48px;
+      margin: 0 auto 12px;
+      background: var(--teal-light);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .upload-icon svg {
+      width: 22px;
+      height: 22px;
+      stroke: var(--teal);
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .upload-title {
+      font-size: 15px;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .upload-hint {
+      font-size: 13px;
+      color: var(--text-3);
+    }
+
+    .or-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 16px 0;
+      color: var(--text-3);
+      font-size: 13px;
+    }
+
+    .or-divider::before,
+    .or-divider::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .camera-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .camera-btn:hover {
+      background: var(--bg);
+      border-color: var(--teal-mid);
+    }
+
+    .camera-btn svg {
+      width: 18px;
+      height: 18px;
+      stroke: var(--teal);
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .preview-wrap {
+      position: relative;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      margin-bottom: 16px;
+      background: #000;
+    }
+
+    .preview-wrap img {
+      width: 100%;
+      max-height: 320px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .preview-remove {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.55);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    .api-key-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .api-key-row input {
+      flex: 1;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-family: monospace;
+      background: var(--bg);
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .api-key-row input:focus {
+      border-color: var(--teal);
+    }
+
+    .api-key-row input::placeholder {
+      color: var(--text-3);
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 24px;
+      background: var(--teal);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s, opacity 0.15s;
+      width: 100%;
+    }
+
+    .btn-primary:hover {
+      background: var(--teal-dark);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 20px;
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg);
+    }
+
+    .loading-state {
+      text-align: center;
+      padding: 40px 20px;
+    }
+
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid var(--teal-light);
+      border-top-color: var(--teal);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto 14px;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .loading-title {
+      font-size: 15px;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .loading-sub {
+      font-size: 13px;
+      color: var(--text-3);
+    }
+
+    .ingredient-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 16px 0;
+    }
+
+    .ingredient-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      background: var(--teal-light);
+      color: var(--teal-dark);
+      border-radius: 99px;
+      font-size: 13px;
+      font-weight: 500;
+      border: 1px solid #9FE1CB;
+    }
+
+    .ingredient-tag button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--teal-dark);
+      font-size: 14px;
+      line-height: 1;
+      padding: 0;
+      opacity: 0.6;
+      display: flex;
+      align-items: center;
+    }
+
+    .ingredient-tag button:hover {
+      opacity: 1;
+    }
+
+    .add-ingredient-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .add-ingredient-row input {
+      flex: 1;
+      padding: 9px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      outline: none;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .add-ingredient-row input:focus {
+      border-color: var(--teal);
+    }
+
+    .add-ingredient-row button {
+      padding: 9px 16px;
+      background: var(--teal);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .recipe-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 16px;
+      background: var(--surface);
+      transition: border-color 0.15s;
+    }
+
+    .recipe-card:hover {
+      border-color: var(--teal-mid);
+    }
+
+    /* ── Split top: image left, details right ── */
+    .recipe-top {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      min-height: 200px;
+    }
+
+    .dish-img-wrap {
+      width: 100%;
+      height: 100%;
+      min-height: 200px;
+      background: var(--bg);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .dish-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .dish-img-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-3);
+      font-size: 12px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .dish-img-placeholder .spinner {
+      width: 22px;
+      height: 22px;
+      border-width: 2px;
+      margin: 0;
+    }
+
+    .recipe-detail {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      border-left: 1px solid var(--border);
+    }
+
+    .recipe-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+      line-height: 1.3;
+    }
+
+    .cuisine-tag {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 99px;
+      background: #EDE9FE;
+      color: #5B21B6;
+      font-weight: 500;
+      display: inline-block;
+      margin-bottom: 8px;
+    }
+
+    .recipe-meta {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .meta-pill {
+      font-size: 12px;
+      color: var(--text-2);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .meta-pill svg {
+      width: 13px;
+      height: 13px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+    }
+
+    .recipe-ingredients-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-3);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+    }
+
+    .ing-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 6px;
+    }
+
+    .ing-chip {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 99px;
+      border: 1px solid;
+    }
+
+    .ing-chip.have {
+      background: var(--teal-light);
+      color: var(--teal-dark);
+      border-color: #9FE1CB;
+    }
+
+    .ing-chip.need {
+      background: #FEF3C7;
+      color: #92400E;
+      border-color: #FCD34D;
+    }
+
+    .staples-note {
+      font-size: 11px;
+      color: var(--text-3);
+      margin-top: 8px;
+      line-height: 1.4;
+    }
+
+    /* ── Bottom: steps ── */
+    .expand-btn {
+      width: 100%;
+      padding: 11px;
+      background: var(--bg);
+      border: none;
+      border-top: 1px solid var(--border);
+      font-size: 13px;
+      color: var(--teal);
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .expand-btn:hover {
+      background: var(--teal-light);
+    }
+
+    .expand-btn svg {
+      width: 14px;
+      height: 14px;
+      stroke: var(--teal);
+      fill: none;
+      stroke-width: 2;
+      transition: transform 0.2s;
+    }
+
+    .expand-btn.open svg {
+      transform: rotate(180deg);
+    }
+
+    .recipe-steps {
+      padding: 16px 18px 18px;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    .recipe-steps-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-3);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 12px;
+    }
+
+    .step-item {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .step-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .step-num {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--teal);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .step-text {
+      font-size: 14px;
+      color: var(--text-2);
+      line-height: 1.55;
+    }
+
+    @media (max-width: 480px) {
+      .recipe-top {
+        grid-template-columns: 1fr;
+      }
+
+      .dish-img-wrap {
+        min-height: 180px;
+        height: 180px;
+      }
+
+      .recipe-detail {
+        border-left: none;
+        border-top: 1px solid var(--border);
+      }
+    }
+
+    .error-box {
+      background: #FEF2F2;
+      border: 1px solid #FECACA;
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+      color: #991B1B;
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+
+    .section-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+
+    .info-note {
+      background: #EFF6FF;
+      border: 1px solid #BFDBFE;
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      font-size: 13px;
+      color: #1E40AF;
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    .info-note a {
+      color: #1D4ED8;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .cuisine-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+      gap: 8px;
+      margin: 12px 0 4px;
+    }
+
+    .cuisine-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      padding: 10px 6px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-2);
+      transition: all 0.15s;
+      text-align: center;
+    }
+
+    .cuisine-btn:hover {
+      border-color: var(--teal-mid);
+      background: var(--teal-light);
+      color: var(--teal-dark);
+    }
+
+    .cuisine-btn.selected {
+      border-color: var(--teal);
+      background: var(--teal-light);
+      color: var(--teal-dark);
+    }
+
+    .cuisine-btn .cicon {
+      font-size: 22px;
+      line-height: 1;
+    }
+
+    .error-box {
+      background: #FEF2F2;
+      border: 1px solid #FECACA;
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+      color: #991B1B;
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, var(--teal-light) 0%, #fff 60%);
+      border-bottom: 1px solid var(--border);
+      padding: 24px 24px 20px;
+      text-align: center;
+    }
+
+    .hero-logo {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--teal);
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+    }
+
+    .hero-logo span {
+      color: var(--text);
+      font-weight: 400;
+    }
+
+    .hero-desc {
+      font-size: 14px;
+      color: var(--text-2);
+      max-width: 460px;
+      margin: 0 auto 10px;
+      line-height: 1.65;
+    }
+
+    .hero-tags {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .hero-tag {
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 99px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-3);
+    }
+
+    video {
+      width: 100%;
+      max-height: 300px;
+      object-fit: cover;
+      border-radius: var(--radius-sm);
+      background: #000;
+      display: block;
+      margin-bottom: 10px;
+    }
+
+    .camera-controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .camera-controls button {
+      flex: 1;
+      padding: 10px;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      transition: background 0.15s;
+    }
+
+    .camera-controls button.capture {
+      background: var(--teal);
+      color: #fff;
+      border-color: var(--teal);
+    }
+
+    .camera-controls button:hover {
+      opacity: 0.85;
+    }
+  </style>
 </head>
+
 <body>
 
-<header>
-  <div class="logo">Plate<span>Up</span></div>
-  <span class="badge">POC</span>
-</header>
+  <header>
+    <div class="logo">Plate<span>Up</span></div>
+    <span class="badge">POC</span>
+  </header>
 
-<div class="hero">
-  <div class="hero-logo">Plate<span>Up</span></div>
-  <p class="hero-desc">Snap your fridge, pick a cuisine, and get simple dinner ideas built around what you already have — with step-by-step instructions anyone can follow.</p>
-  <div class="hero-tags">
-    <span class="hero-tag">📷 Scan your fridge</span>
-    <span class="hero-tag">🍽️ Get 3 meal ideas</span>
-    <span class="hero-tag">✅ Simple steps</span>
-    <span class="hero-tag">🌍 Any cuisine</span>
-    <span class="hero-tag">🥗 Healthy & quick</span>
-  </div>
-</div>
-
-<main>
-
-  <div class="step-indicator">
-    <div class="step-dot active" id="dot-1">1</div>
-    <div class="step-line" id="line-1"></div>
-    <div class="step-dot" id="dot-2">2</div>
-    <div class="step-line" id="line-2"></div>
-    <div class="step-dot" id="dot-3">3</div>
-  </div>
-  <div class="steps-row">
-    <span class="step-label active" id="lbl-1" style="width:60px">Scan fridge</span>
-    <span class="step-label" id="lbl-2" style="width:80px;text-align:center">Confirm ingredients</span>
-    <span class="step-label" id="lbl-3" style="width:60px;text-align:right">Recipes</span>
+  <div class="hero">
+    <div class="hero-logo">Plate<span>Up</span></div>
+    <p class="hero-desc">Snap your fridge, pick a cuisine, and get simple dinner ideas built around what you already
+      have — with step-by-step instructions anyone can follow.</p>
+    <div class="hero-tags">
+      <span class="hero-tag">📷 Scan your fridge</span>
+      <span class="hero-tag">🍽️ Get 3 meal ideas</span>
+      <span class="hero-tag">✅ Simple steps</span>
+      <span class="hero-tag">🌍 Any cuisine</span>
+      <span class="hero-tag">🥗 Healthy & quick</span>
+    </div>
   </div>
 
-  <div id="error-banner" class="error-box hidden"></div>
+  <main>
 
-  <div id="view-scan">
-    <div class="card">
-      <div class="card-title">Scan your fridge</div>
-      <div class="card-sub">Take a photo or upload an image of your fridge. We'll detect what's inside and suggest dinner ideas using what you already have.</div>
+    <div class="step-indicator">
+      <div class="step-dot active" id="dot-1">1</div>
+      <div class="step-line" id="line-1"></div>
+      <div class="step-dot" id="dot-2">2</div>
+      <div class="step-line" id="line-2"></div>
+      <div class="step-dot" id="dot-3">3</div>
+    </div>
+    <div class="steps-row">
+      <span class="step-label active" id="lbl-1" style="width:60px">Scan fridge</span>
+      <span class="step-label" id="lbl-2" style="width:80px;text-align:center">Confirm ingredients</span>
+      <span class="step-label" id="lbl-3" style="width:60px;text-align:right">Recipes</span>
+    </div>
 
-      <div id="preview-container" class="hidden">
-        <div class="preview-wrap">
-          <img id="preview-img" src="" alt="Fridge photo">
-          <button class="preview-remove" onclick="resetImage()" title="Remove">&#x2715;</button>
+    <div id="error-banner" class="error-box hidden"></div>
+
+    <div id="view-scan">
+      <div class="card">
+        <div class="card-title">Scan your fridge</div>
+        <div class="card-sub">Take a photo or upload an image of your fridge. We'll detect what's inside and suggest
+          dinner ideas using what you already have.</div>
+
+        <div id="preview-container" class="hidden">
+          <div class="preview-wrap">
+            <img id="preview-img" src="" alt="Fridge photo">
+            <button class="preview-remove" onclick="resetImage()" title="Remove">&#x2715;</button>
+          </div>
         </div>
-      </div>
 
-      <div id="camera-container" class="hidden">
-        <video id="camera-video" autoplay playsinline></video>
-        <div class="camera-controls">
-          <button onclick="stopCamera()">Cancel</button>
-          <button class="capture" onclick="capturePhoto()">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px"><circle cx="12" cy="12" r="3"/><path d="M20.94 11A8.994 8.994 0 1 1 9 3.06"/></svg>
-            Capture photo
+        <div id="camera-container" class="hidden">
+          <video id="camera-video" autoplay playsinline></video>
+          <div class="camera-controls">
+            <button onclick="stopCamera()">Cancel</button>
+            <button class="capture" onclick="capturePhoto()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round"
+                style="display:inline;vertical-align:middle;margin-right:4px">
+                <circle cx="12" cy="12" r="3" />
+                <path d="M20.94 11A8.994 8.994 0 1 1 9 3.06" />
+              </svg>
+              Capture photo
+            </button>
+          </div>
+        </div>
+
+        <div id="upload-area">
+          <div class="upload-zone" id="drop-zone">
+            <input type="file" accept="image/*" id="file-input" onchange="handleFileSelect(event)">
+            <div class="upload-icon">
+              <svg viewBox="0 0 24 24">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+            </div>
+            <div class="upload-title">Drop a photo here or click to browse</div>
+            <div class="upload-hint">JPG, PNG — your fridge, freezer, or pantry shelf</div>
+          </div>
+
+          <div class="or-divider">or use your camera</div>
+
+          <button class="camera-btn" onclick="startCamera()">
+            <svg viewBox="0 0 24 24">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+              <circle cx="12" cy="13" r="4" />
+            </svg>
+            Open camera
           </button>
         </div>
       </div>
 
-      <div id="upload-area">
-        <div class="upload-zone" id="drop-zone">
-          <input type="file" accept="image/*" id="file-input" onchange="handleFileSelect(event)">
-          <div class="upload-icon">
-            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          </div>
-          <div class="upload-title">Drop a photo here or click to browse</div>
-          <div class="upload-hint">JPG, PNG — your fridge, freezer, or pantry shelf</div>
+      <div class="card">
+        <div class="card-title">OpenAI API key</div>
+        <div class="card-sub">This POC calls GPT-4o directly from your browser. Your key is never stored — it lives only
+          in this session.</div>
+        <div class="info-note">Get your key at <a href="https://platform.openai.com/api-keys"
+            target="_blank">platform.openai.com/api-keys</a>. GPT-4o with vision must be enabled on your account.</div>
+        <div class="api-key-row">
+          <input type="password" id="api-key" placeholder="sk-..." autocomplete="off">
         </div>
+      </div>
 
-        <div class="or-divider">or use your camera</div>
+      <button class="btn-primary" id="scan-btn" onclick="runScan()" disabled>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        Scan &amp; detect ingredients
+      </button>
+    </div>
 
-        <button class="camera-btn" onclick="startCamera()">
-          <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-          Open camera
+    <div id="view-loading" class="hidden">
+      <div class="card">
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <div class="loading-title" id="loading-title">Analysing your fridge...</div>
+          <div class="loading-sub" id="loading-sub">GPT-4o is identifying ingredients from your photo</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="view-ingredients" class="hidden">
+      <div class="card">
+        <div class="card-title">Ingredients detected</div>
+        <div class="card-sub">Review what we found and make any corrections before generating recipes.</div>
+        <div id="ingredient-list" class="ingredient-list"></div>
+        <div class="add-ingredient-row">
+          <input type="text" id="add-input" placeholder="Add a missing ingredient..."
+            onkeydown="if(event.key==='Enter') addIngredient()">
+          <button onclick="addIngredient()">Add</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Cuisine style</div>
+        <div class="card-sub">Pick a style and we'll tailor the recipes to match. You can select more than one.</div>
+        <div class="cuisine-grid">
+          <button class="cuisine-btn" data-cuisine="Any" onclick="toggleCuisine(this)"><span class="cicon">🌍</span>Any
+            style</button>
+          <button class="cuisine-btn" data-cuisine="Indian" onclick="toggleCuisine(this)"><span
+              class="cicon">🍛</span>Indian</button>
+          <button class="cuisine-btn" data-cuisine="Italian" onclick="toggleCuisine(this)"><span
+              class="cicon">🍝</span>Italian</button>
+          <button class="cuisine-btn" data-cuisine="Chinese" onclick="toggleCuisine(this)"><span
+              class="cicon">🥢</span>Chinese</button>
+          <button class="cuisine-btn" data-cuisine="Mexican" onclick="toggleCuisine(this)"><span
+              class="cicon">🌮</span>Mexican</button>
+          <button class="cuisine-btn" data-cuisine="Japanese" onclick="toggleCuisine(this)"><span
+              class="cicon">🍱</span>Japanese</button>
+          <button class="cuisine-btn" data-cuisine="Mediterranean" onclick="toggleCuisine(this)"><span
+              class="cicon">🫒</span>Mediterranean</button>
+          <button class="cuisine-btn" data-cuisine="Thai" onclick="toggleCuisine(this)"><span
+              class="cicon">🍜</span>Thai</button>
+          <button class="cuisine-btn" data-cuisine="Healthy" onclick="toggleCuisine(this)"><span
+              class="cicon">🥗</span>Healthy</button>
+          <button class="cuisine-btn" data-cuisine="Comfort food" onclick="toggleCuisine(this)"><span
+              class="cicon">🍲</span>Comfort</button>
+          <button class="cuisine-btn" data-cuisine="Quick & easy" onclick="toggleCuisine(this)"><span
+              class="cicon">⚡</span>Quick</button>
+          <button class="cuisine-btn" data-cuisine="High protein" onclick="toggleCuisine(this)"><span
+              class="cicon">💪</span>High protein</button>
+        </div>
+      </div>
+
+      <div class="section-actions">
+        <button class="btn-secondary" onclick="goBack()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12" />
+            <polyline points="12 19 5 12 12 5" />
+          </svg>
+          Re-scan
+        </button>
+        <button class="btn-primary" style="flex:1" onclick="generateRecipes()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2L2 7l10 5 10-5-10-5z" />
+            <path d="M2 17l10 5 10-5" />
+            <path d="M2 12l10 5 10-5" />
+          </svg>
+          Generate recipes
         </button>
       </div>
     </div>
 
-    <div class="card">
-      <div class="card-title">OpenAI API key</div>
-      <div class="card-sub">This POC calls GPT-4o directly from your browser. Your key is never stored — it lives only in this session.</div>
-      <div class="info-note">Get your key at <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com/api-keys</a>. GPT-4o with vision must be enabled on your account.</div>
-      <div class="api-key-row">
-        <input type="password" id="api-key" placeholder="sk-..." autocomplete="off">
+    <div id="view-recipes" class="hidden">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <div>
+          <div style="font-size:18px;font-weight:600;color:var(--text)">Your recipes</div>
+          <div style="font-size:13px;color:var(--text-3);" id="recipe-subtitle">Based on what's in your fridge</div>
+        </div>
+        <button class="btn-secondary" style="font-size:13px" onclick="goBack()">Rescan</button>
+      </div>
+      <div id="recipe-list"></div>
+      <div class="section-actions">
+        <button class="btn-secondary" onclick="generateRecipes()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="1 4 1 10 7 10" />
+            <path d="M3.51 15a9 9 0 1 0 .49-3.93" />
+          </svg>
+          Regenerate
+        </button>
+        <button class="btn-primary" style="flex:1"
+          onclick="sendPrompt('I want to plan a full week of meals using PlateUp. What should I build next in the product?')">
+          Plan the full week ↗
+        </button>
       </div>
     </div>
 
-    <button class="btn-primary" id="scan-btn" onclick="runScan()" disabled>
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      Scan &amp; detect ingredients
-    </button>
-  </div>
+  </main>
 
-  <div id="view-loading" class="hidden">
-    <div class="card">
-      <div class="loading-state">
-        <div class="spinner"></div>
-        <div class="loading-title" id="loading-title">Analysing your fridge...</div>
-        <div class="loading-sub" id="loading-sub">GPT-4o is identifying ingredients from your photo</div>
-      </div>
-    </div>
-  </div>
+  <canvas id="capture-canvas" style="display:none"></canvas>
 
-  <div id="view-ingredients" class="hidden">
-    <div class="card">
-      <div class="card-title">Ingredients detected</div>
-      <div class="card-sub">Review what we found and make any corrections before generating recipes.</div>
-      <div id="ingredient-list" class="ingredient-list"></div>
-      <div class="add-ingredient-row">
-        <input type="text" id="add-input" placeholder="Add a missing ingredient..." onkeydown="if(event.key==='Enter') addIngredient()">
-        <button onclick="addIngredient()">Add</button>
-      </div>
-    </div>
+  <script>
+    let imageData = null;
+    let detectedIngredients = [];
+    let selectedCuisines = [];
+    let stream = null;
 
-    <div class="card">
-      <div class="card-title">Cuisine style</div>
-      <div class="card-sub">Pick a style and we'll tailor the recipes to match. You can select more than one.</div>
-      <div class="cuisine-grid">
-        <button class="cuisine-btn" data-cuisine="Any" onclick="toggleCuisine(this)"><span class="cicon">🌍</span>Any style</button>
-        <button class="cuisine-btn" data-cuisine="Indian" onclick="toggleCuisine(this)"><span class="cicon">🍛</span>Indian</button>
-        <button class="cuisine-btn" data-cuisine="Italian" onclick="toggleCuisine(this)"><span class="cicon">🍝</span>Italian</button>
-        <button class="cuisine-btn" data-cuisine="Chinese" onclick="toggleCuisine(this)"><span class="cicon">🥢</span>Chinese</button>
-        <button class="cuisine-btn" data-cuisine="Mexican" onclick="toggleCuisine(this)"><span class="cicon">🌮</span>Mexican</button>
-        <button class="cuisine-btn" data-cuisine="Japanese" onclick="toggleCuisine(this)"><span class="cicon">🍱</span>Japanese</button>
-        <button class="cuisine-btn" data-cuisine="Mediterranean" onclick="toggleCuisine(this)"><span class="cicon">🫒</span>Mediterranean</button>
-        <button class="cuisine-btn" data-cuisine="Thai" onclick="toggleCuisine(this)"><span class="cicon">🍜</span>Thai</button>
-        <button class="cuisine-btn" data-cuisine="Healthy" onclick="toggleCuisine(this)"><span class="cicon">🥗</span>Healthy</button>
-        <button class="cuisine-btn" data-cuisine="Comfort food" onclick="toggleCuisine(this)"><span class="cicon">🍲</span>Comfort</button>
-        <button class="cuisine-btn" data-cuisine="Quick & easy" onclick="toggleCuisine(this)"><span class="cicon">⚡</span>Quick</button>
-        <button class="cuisine-btn" data-cuisine="High protein" onclick="toggleCuisine(this)"><span class="cicon">💪</span>High protein</button>
-      </div>
-    </div>
+    const apiKeyInput = document.getElementById('api-key');
+    const scanBtn = document.getElementById('scan-btn');
 
-    <div class="section-actions">
-      <button class="btn-secondary" onclick="goBack()">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-        Re-scan
-      </button>
-      <button class="btn-primary" style="flex:1" onclick="generateRecipes()">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-        Generate recipes
-      </button>
-    </div>
-  </div>
+    apiKeyInput.addEventListener('input', updateScanBtn);
 
-  <div id="view-recipes" class="hidden">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-      <div>
-        <div style="font-size:18px;font-weight:600;color:var(--text)">Your recipes</div>
-        <div style="font-size:13px;color:var(--text-3);" id="recipe-subtitle">Based on what's in your fridge</div>
-      </div>
-      <button class="btn-secondary" style="font-size:13px" onclick="goBack()">Rescan</button>
-    </div>
-    <div id="recipe-list"></div>
-    <div class="section-actions">
-      <button class="btn-secondary" onclick="generateRecipes()">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.93"/></svg>
-        Regenerate
-      </button>
-      <button class="btn-primary" style="flex:1" onclick="sendPrompt('I want to plan a full week of meals using PlateUp. What should I build next in the product?')">
-        Plan the full week ↗
-      </button>
-    </div>
-  </div>
-
-</main>
-
-<canvas id="capture-canvas" style="display:none"></canvas>
-
-<script>
-let imageData = null;
-let detectedIngredients = [];
-let selectedCuisines = [];
-let stream = null;
-
-const apiKeyInput = document.getElementById('api-key');
-const scanBtn = document.getElementById('scan-btn');
-
-apiKeyInput.addEventListener('input', updateScanBtn);
-
-function updateScanBtn() {
-  scanBtn.disabled = !(imageData && apiKeyInput.value.trim().startsWith('sk-'));
-}
-
-function show(id) {
-  ['view-scan','view-loading','view-ingredients','view-recipes'].forEach(v => {
-    document.getElementById(v).classList.add('hidden');
-  });
-  document.getElementById(id).classList.remove('hidden');
-}
-
-function setStep(n) {
-  for (let i = 1; i <= 3; i++) {
-    const dot = document.getElementById('dot-' + i);
-    const lbl = document.getElementById('lbl-' + i);
-    dot.className = 'step-dot' + (i < n ? ' done' : i === n ? ' active' : '');
-    lbl.className = 'step-label' + (i === n ? ' active' : '');
-    if (i < 3) {
-      document.getElementById('line-' + i).className = 'step-line' + (i < n ? ' done' : '');
+    function updateScanBtn() {
+      scanBtn.disabled = !(imageData && apiKeyInput.value.trim().startsWith('sk-'));
     }
-  }
-}
 
-function showError(msg) {
-  const b = document.getElementById('error-banner');
-  b.textContent = msg;
-  b.classList.remove('hidden');
-  setTimeout(() => b.classList.add('hidden'), 6000);
-}
+    function show(id) {
+      ['view-scan', 'view-loading', 'view-ingredients', 'view-recipes'].forEach(v => {
+        document.getElementById(v).classList.add('hidden');
+      });
+      document.getElementById(id).classList.remove('hidden');
+    }
 
-function toggleCuisine(btn) {
-  const cuisine = btn.dataset.cuisine;
-  if (cuisine === 'Any') {
-    selectedCuisines = [];
-    document.querySelectorAll('.cuisine-btn').forEach(b => b.classList.remove('selected'));
-    btn.classList.add('selected');
-    return;
-  }
-  document.querySelector('[data-cuisine="Any"]').classList.remove('selected');
-  btn.classList.toggle('selected');
-  selectedCuisines = Array.from(document.querySelectorAll('.cuisine-btn.selected')).map(b => b.dataset.cuisine);
-}
+    function setStep(n) {
+      for (let i = 1; i <= 3; i++) {
+        const dot = document.getElementById('dot-' + i);
+        const lbl = document.getElementById('lbl-' + i);
+        dot.className = 'step-dot' + (i < n ? ' done' : i === n ? ' active' : '');
+        lbl.className = 'step-label' + (i === n ? ' active' : '');
+        if (i < 3) {
+          document.getElementById('line-' + i).className = 'step-line' + (i < n ? ' done' : '');
+        }
+      }
+    }
 
-function handleFileSelect(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  processFile(file);
-}
+    function showError(msg) {
+      const b = document.getElementById('error-banner');
+      b.textContent = msg;
+      b.classList.remove('hidden');
+      setTimeout(() => b.classList.add('hidden'), 6000);
+    }
 
-function processFile(file) {
-  if (!file.type.startsWith('image/')) { showError('Please select an image file.'); return; }
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    imageData = e.target.result;
-    document.getElementById('preview-img').src = imageData;
-    document.getElementById('preview-container').classList.remove('hidden');
-    document.getElementById('upload-area').classList.add('hidden');
-    updateScanBtn();
-  };
-  reader.readAsDataURL(file);
-}
+    function toggleCuisine(btn) {
+      const cuisine = btn.dataset.cuisine;
+      if (cuisine === 'Any') {
+        selectedCuisines = [];
+        document.querySelectorAll('.cuisine-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        return;
+      }
+      document.querySelector('[data-cuisine="Any"]').classList.remove('selected');
+      btn.classList.toggle('selected');
+      selectedCuisines = Array.from(document.querySelectorAll('.cuisine-btn.selected')).map(b => b.dataset.cuisine);
+    }
 
-function resetImage() {
-  imageData = null;
-  document.getElementById('preview-img').src = '';
-  document.getElementById('preview-container').classList.add('hidden');
-  document.getElementById('upload-area').classList.remove('hidden');
-  document.getElementById('file-input').value = '';
-  updateScanBtn();
-}
+    function handleFileSelect(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      processFile(file);
+    }
 
-async function startCamera() {
-  try {
-    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
-    document.getElementById('camera-video').srcObject = stream;
-    document.getElementById('upload-area').classList.add('hidden');
-    document.getElementById('camera-container').classList.remove('hidden');
-  } catch (err) {
-    showError('Camera access denied or unavailable. Please use file upload instead.');
-  }
-}
+    function processFile(file) {
+      if (!file.type.startsWith('image/')) { showError('Please select an image file.'); return; }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        imageData = e.target.result;
+        document.getElementById('preview-img').src = imageData;
+        document.getElementById('preview-container').classList.remove('hidden');
+        document.getElementById('upload-area').classList.add('hidden');
+        updateScanBtn();
+      };
+      reader.readAsDataURL(file);
+    }
 
-function capturePhoto() {
-  const video = document.getElementById('camera-video');
-  const canvas = document.getElementById('capture-canvas');
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  canvas.getContext('2d').drawImage(video, 0, 0);
-  imageData = canvas.toDataURL('image/jpeg', 0.85);
-  document.getElementById('preview-img').src = imageData;
-  document.getElementById('preview-container').classList.remove('hidden');
-  document.getElementById('camera-container').classList.add('hidden');
-  stopCamera();
-  updateScanBtn();
-}
+    function resetImage() {
+      imageData = null;
+      document.getElementById('preview-img').src = '';
+      document.getElementById('preview-container').classList.add('hidden');
+      document.getElementById('upload-area').classList.remove('hidden');
+      document.getElementById('file-input').value = '';
+      updateScanBtn();
+    }
 
-function stopCamera() {
-  if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
-  document.getElementById('camera-container').classList.add('hidden');
-  if (!imageData) document.getElementById('upload-area').classList.remove('hidden');
-}
+    async function startCamera() {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+        document.getElementById('camera-video').srcObject = stream;
+        document.getElementById('upload-area').classList.add('hidden');
+        document.getElementById('camera-container').classList.remove('hidden');
+      } catch (err) {
+        showError('Camera access denied or unavailable. Please use file upload instead.');
+      }
+    }
 
-const dropZone = document.getElementById('drop-zone');
-dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
-dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
-dropZone.addEventListener('drop', e => {
-  e.preventDefault();
-  dropZone.classList.remove('dragover');
-  const file = e.dataTransfer.files[0];
-  if (file) processFile(file);
-});
+    function capturePhoto() {
+      const video = document.getElementById('camera-video');
+      const canvas = document.getElementById('capture-canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext('2d').drawImage(video, 0, 0);
+      imageData = canvas.toDataURL('image/jpeg', 0.85);
+      document.getElementById('preview-img').src = imageData;
+      document.getElementById('preview-container').classList.remove('hidden');
+      document.getElementById('camera-container').classList.add('hidden');
+      stopCamera();
+      updateScanBtn();
+    }
 
-async function runScan() {
-  const key = apiKeyInput.value.trim();
-  if (!key || !imageData) return;
+    function stopCamera() {
+      if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+      document.getElementById('camera-container').classList.add('hidden');
+      if (!imageData) document.getElementById('upload-area').classList.remove('hidden');
+    }
 
-  show('view-loading');
-  document.getElementById('loading-title').textContent = 'Analysing your fridge...';
-  document.getElementById('loading-sub').textContent = 'GPT-4o is identifying ingredients from your photo';
+    const dropZone = document.getElementById('drop-zone');
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      const file = e.dataTransfer.files[0];
+      if (file) processFile(file);
+    });
 
-  const prompt = `You are a helpful kitchen assistant. Look at this fridge/kitchen photo carefully and identify all visible food ingredients, produce, condiments, and items that could be used for cooking.
+    async function runScan() {
+      const key = apiKeyInput.value.trim();
+      if (!key || !imageData) return;
+
+      show('view-loading');
+      document.getElementById('loading-title').textContent = 'Analysing your fridge...';
+      document.getElementById('loading-sub').textContent = 'GPT-4o is identifying ingredients from your photo';
+
+      const prompt = `You are a helpful kitchen assistant. Look at this fridge/kitchen photo carefully and identify all visible food ingredients, produce, condiments, and items that could be used for cooking.
 
 Return ONLY a JSON object in this exact format, no other text:
 {
@@ -1007,86 +1254,86 @@ Return ONLY a JSON object in this exact format, no other text:
 
 Be specific but practical (e.g. "chicken breast" not just "meat", "cheddar cheese" not just "cheese"). List only items that are clearly visible or can be reasonably inferred. Include condiments, sauces, and pantry staples if visible.`;
 
-  try {
-    const res = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + key
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o',
-        max_tokens: 1000,
-        messages: [{
-          role: 'user',
-          content: [
-            { type: 'image_url', image_url: { url: imageData, detail: 'high' } },
-            { type: 'text', text: prompt }
-          ]
-        }]
-      })
-    });
+      try {
+        const res = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + key
+          },
+          body: JSON.stringify({
+            model: 'gpt-4o',
+            max_tokens: 1000,
+            messages: [{
+              role: 'user',
+              content: [
+                { type: 'image_url', image_url: { url: imageData, detail: 'high' } },
+                { type: 'text', text: prompt }
+              ]
+            }]
+          })
+        });
 
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.error?.message || 'API request failed (status ' + res.status + ')');
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error?.message || 'API request failed (status ' + res.status + ')');
+        }
+
+        const data = await res.json();
+        const text = data.choices[0]?.message?.content || '';
+        const cleaned = text.replace(/```json|```/g, '').trim();
+        const parsed = JSON.parse(cleaned);
+        detectedIngredients = parsed.ingredients.map(i => i.name);
+        renderIngredients();
+        setStep(2);
+        show('view-ingredients');
+
+      } catch (err) {
+        show('view-scan');
+        showError('Error: ' + err.message);
+      }
     }
 
-    const data = await res.json();
-    const text = data.choices[0]?.message?.content || '';
-    const cleaned = text.replace(/```json|```/g, '').trim();
-    const parsed = JSON.parse(cleaned);
-    detectedIngredients = parsed.ingredients.map(i => i.name);
-    renderIngredients();
-    setStep(2);
-    show('view-ingredients');
+    function renderIngredients() {
+      const list = document.getElementById('ingredient-list');
+      list.innerHTML = '';
+      detectedIngredients.forEach((ing, idx) => {
+        const tag = document.createElement('div');
+        tag.className = 'ingredient-tag';
+        tag.innerHTML = `${ing} <button onclick="removeIngredient(${idx})" title="Remove">&#x2715;</button>`;
+        list.appendChild(tag);
+      });
+    }
 
-  } catch (err) {
-    show('view-scan');
-    showError('Error: ' + err.message);
-  }
-}
+    function removeIngredient(idx) {
+      detectedIngredients.splice(idx, 1);
+      renderIngredients();
+    }
 
-function renderIngredients() {
-  const list = document.getElementById('ingredient-list');
-  list.innerHTML = '';
-  detectedIngredients.forEach((ing, idx) => {
-    const tag = document.createElement('div');
-    tag.className = 'ingredient-tag';
-    tag.innerHTML = `${ing} <button onclick="removeIngredient(${idx})" title="Remove">&#x2715;</button>`;
-    list.appendChild(tag);
-  });
-}
+    function addIngredient() {
+      const input = document.getElementById('add-input');
+      const val = input.value.trim();
+      if (!val) return;
+      detectedIngredients.push(val);
+      input.value = '';
+      renderIngredients();
+    }
 
-function removeIngredient(idx) {
-  detectedIngredients.splice(idx, 1);
-  renderIngredients();
-}
+    async function generateRecipes() {
+      if (!detectedIngredients.length) { showError('Add at least one ingredient first.'); return; }
 
-function addIngredient() {
-  const input = document.getElementById('add-input');
-  const val = input.value.trim();
-  if (!val) return;
-  detectedIngredients.push(val);
-  input.value = '';
-  renderIngredients();
-}
+      show('view-loading');
+      document.getElementById('loading-title').textContent = 'Creating your recipes...';
+      document.getElementById('loading-sub').textContent = 'GPT-4o is finding the best meals for your ingredients';
 
-async function generateRecipes() {
-  if (!detectedIngredients.length) { showError('Add at least one ingredient first.'); return; }
+      const key = apiKeyInput.value.trim();
+      const ingList = detectedIngredients.join(', ');
+      const cuisineLabel = selectedCuisines.length ? selectedCuisines.join(', ') : 'any style';
+      const cuisineInstruction = selectedCuisines.length
+        ? `The recipes MUST be in these cuisine styles: ${selectedCuisines.join(', ')}. Adapt the dishes to match this cuisine authentically.`
+        : 'You can suggest any cuisine style.';
 
-  show('view-loading');
-  document.getElementById('loading-title').textContent = 'Creating your recipes...';
-  document.getElementById('loading-sub').textContent = 'GPT-4o is finding the best meals for your ingredients';
-
-  const key = apiKeyInput.value.trim();
-  const ingList = detectedIngredients.join(', ');
-  const cuisineLabel = selectedCuisines.length ? selectedCuisines.join(', ') : 'any style';
-  const cuisineInstruction = selectedCuisines.length
-    ? `The recipes MUST be in these cuisine styles: ${selectedCuisines.join(', ')}. Adapt the dishes to match this cuisine authentically.`
-    : 'You can suggest any cuisine style.';
-
-  const prompt = `You are a helpful home cook. A person has scanned their fridge and has these ingredients: ${ingList}
+      const prompt = `You are a helpful home cook. A person has scanned their fridge and has these ingredients: ${ingList}
 
 ${cuisineInstruction}
 
@@ -1125,52 +1372,52 @@ Return ONLY a valid JSON object, no extra text:
 
 Important: "main_ingredients_used" should only list the key ingredients from their fridge you actually used — not every single item they have.`;
 
-  try {
-    const res = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
-      body: JSON.stringify({
-        model: 'gpt-4o',
-        max_tokens: 2000,
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
+      try {
+        const res = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+          body: JSON.stringify({
+            model: 'gpt-4o',
+            max_tokens: 2000,
+            messages: [{ role: 'user', content: prompt }]
+          })
+        });
 
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.error?.message || 'API request failed');
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error?.message || 'API request failed');
+        }
+
+        const data = await res.json();
+        const text = data.choices[0]?.message?.content || '';
+        const cleaned = text.replace(/```json|```/g, '').trim();
+        const parsed = JSON.parse(cleaned);
+
+        const subtitle = selectedCuisines.length
+          ? `${selectedCuisines.join(' · ')} style · from your fridge`
+          : 'Based on what\'s in your fridge';
+        document.getElementById('recipe-subtitle').textContent = subtitle;
+
+        renderRecipes(parsed.recipes, key);
+        setStep(3);
+        show('view-recipes');
+
+      } catch (err) {
+        show('view-ingredients');
+        showError('Error generating recipes: ' + err.message);
+      }
     }
 
-    const data = await res.json();
-    const text = data.choices[0]?.message?.content || '';
-    const cleaned = text.replace(/```json|```/g, '').trim();
-    const parsed = JSON.parse(cleaned);
-
-    const subtitle = selectedCuisines.length
-      ? `${selectedCuisines.join(' · ')} style · from your fridge`
-      : 'Based on what\'s in your fridge';
-    document.getElementById('recipe-subtitle').textContent = subtitle;
-
-    renderRecipes(parsed.recipes, key);
-    setStep(3);
-    show('view-recipes');
-
-  } catch (err) {
-    show('view-ingredients');
-    showError('Error generating recipes: ' + err.message);
-  }
-}
-
-function renderRecipes(recipes, key) {
-  const list = document.getElementById('recipe-list');
-  list.innerHTML = '';
-  recipes.forEach((r, i) => {
-    const used = r.main_ingredients_used || r.uses || [];
-    const needs = r.needs || [];
-    const card = document.createElement('div');
-    card.className = 'recipe-card';
-    card.id = 'recipe-card-' + i;
-    card.innerHTML = `
+    function renderRecipes(recipes, key) {
+      const list = document.getElementById('recipe-list');
+      list.innerHTML = '';
+      recipes.forEach((r, i) => {
+        const used = r.main_ingredients_used || r.uses || [];
+        const needs = r.needs || [];
+        const card = document.createElement('div');
+        card.className = 'recipe-card';
+        card.id = 'recipe-card-' + i;
+        card.innerHTML = `
       <div class="recipe-top">
         <div class="dish-img-wrap" id="img-wrap-${i}">
           <div class="dish-img-placeholder">
@@ -1208,68 +1455,69 @@ function renderRecipes(recipes, key) {
       </button>
       <div class="recipe-steps hidden">
         <div class="recipe-steps-title">Step by step</div>
-        ${r.steps.map((s, si) => `<div class="step-item"><div class="step-num">${si+1}</div><div class="step-text">${s}</div></div>`).join('')}
+        ${r.steps.map((s, si) => `<div class="step-item"><div class="step-num">${si + 1}</div><div class="step-text">${s}</div></div>`).join('')}
       </div>
     `;
-    list.appendChild(card);
-    if (key && r.image_prompt) {
-      generateDishImage(r.image_prompt, r.name, i, key);
-    } else {
-      showImageFallback(i);
+        list.appendChild(card);
+        if (key && r.image_prompt) {
+          generateDishImage(r.image_prompt, r.name, i, key);
+        } else {
+          showImageFallback(i);
+        }
+      });
     }
-  });
-}
 
-async function generateDishImage(promptText, dishName, idx, key) {
-  const finalPrompt = `A real photograph of ${dishName}. Simple everyday home-cooked meal served on a plain white round plate. Straight top-down view, full plate visible, centered. Plain white background. Flat even lighting. No shadows. No highlights. No garnish. No decoration. No props. No cutlery. No napkins. Looks like a normal weeknight home dinner. Not a restaurant dish. Not styled. Realistic food texture. Shot with a phone camera from directly above.`;
-  try {
-    const res = await fetch('https://api.openai.com/v1/images/generations', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
-      body: JSON.stringify({
-        model: 'gpt-image-2',
-        prompt: finalPrompt,
-        n: 1,
-        size: '1024x1024',
-        quality: 'low',
-        output_format: 'png'
-      })
-    });
-    if (!res.ok) { showImageFallback(idx); return; }
-    const data = await res.json();
-    const b64 = data.data[0]?.b64_json;
-    if (!b64) { showImageFallback(idx); return; }
-    const wrap = document.getElementById('img-wrap-' + idx);
-    if (wrap) wrap.innerHTML = `<img src="data:image/png;base64,${b64}" alt="${dishName}" loading="lazy">`;
-  } catch {
-    showImageFallback(idx);
-  }
-}
+    async function generateDishImage(promptText, dishName, idx, key) {
+      const finalPrompt = `A real photograph of ${dishName}. Simple everyday home-cooked meal served on a plain white round plate. Straight top-down view, full plate visible, centered. Plain white background. Flat even lighting. No shadows. No highlights. No garnish. No decoration. No props. No cutlery. No napkins. Looks like a normal weeknight home dinner. Not a restaurant dish. Not styled. Realistic food texture. Shot with a phone camera from directly above.`;
+      try {
+        const res = await fetch('https://api.openai.com/v1/images/generations', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+          body: JSON.stringify({
+            model: 'gpt-image-2',
+            prompt: finalPrompt,
+            n: 1,
+            size: '1024x1024',
+            quality: 'low',
+            output_format: 'png'
+          })
+        });
+        if (!res.ok) { showImageFallback(idx); return; }
+        const data = await res.json();
+        const b64 = data.data[0]?.b64_json;
+        if (!b64) { showImageFallback(idx); return; }
+        const wrap = document.getElementById('img-wrap-' + idx);
+        if (wrap) wrap.innerHTML = `<img src="data:image/png;base64,${b64}" alt="${dishName}" loading="lazy">`;
+      } catch {
+        showImageFallback(idx);
+      }
+    }
 
-function showImageFallback(idx) {
-  const wrap = document.getElementById('img-wrap-' + idx);
-  if (wrap) {
-    wrap.innerHTML = `<div class="dish-img-placeholder" style="color:var(--text-3)">
+    function showImageFallback(idx) {
+      const wrap = document.getElementById('img-wrap-' + idx);
+      if (wrap) {
+        wrap.innerHTML = `<div class="dish-img-placeholder" style="color:var(--text-3)">
       <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
       <span>Image unavailable</span>
     </div>`;
-  }
-}
+      }
+    }
 
-function toggleSteps(btn) {
-  const steps = btn.nextElementSibling;
-  const hidden = steps.classList.contains('hidden');
-  steps.classList.toggle('hidden', !hidden);
-  btn.classList.toggle('open', hidden);
-  btn.querySelector('svg').style.transform = hidden ? 'rotate(180deg)' : '';
-  const label = btn.childNodes[btn.childNodes.length - 1];
-  if (label) label.textContent = hidden ? ' Hide steps' : ' How to make it';
-}
+    function toggleSteps(btn) {
+      const steps = btn.nextElementSibling;
+      const hidden = steps.classList.contains('hidden');
+      steps.classList.toggle('hidden', !hidden);
+      btn.classList.toggle('open', hidden);
+      btn.querySelector('svg').style.transform = hidden ? 'rotate(180deg)' : '';
+      const label = btn.childNodes[btn.childNodes.length - 1];
+      if (label) label.textContent = hidden ? ' Hide steps' : ' How to make it';
+    }
 
-function goBack() {
-  setStep(1);
-  show('view-scan');
-}
-</script>
+    function goBack() {
+      setStep(1);
+      show('view-scan');
+    }
+  </script>
 </body>
+
 </html>

@@ -6,6 +6,37 @@ Snap your fridge, pick a cuisine, and get simple dinner ideas built around what 
 
 ---
 
+## Preview
+
+<table>
+<tr>
+<td width="50%"><img src="screenshots/step1-scan.png" alt="Step 1: Scan your fridge"></td>
+<td width="50%"><img src="screenshots/step1-apikey.png" alt="Step 1b: Enter your API key"></td>
+</tr>
+<tr>
+<td align="center"><sub>Step 1 — Scan your fridge</sub></td>
+<td align="center"><sub>Step 1 — Enter your API key</sub></td>
+</tr>
+<tr>
+<td width="50%"><img src="screenshots/step2-ingredients.png" alt="Step 2: Confirm ingredients"></td>
+<td width="50%"><img src="screenshots/step2-cuisine.png" alt="Step 2: Pick a cuisine"></td>
+</tr>
+<tr>
+<td align="center"><sub>Step 2 — Confirm ingredients</sub></td>
+<td align="center"><sub>Step 2 — Pick a cuisine</sub></td>
+</tr>
+<tr>
+<td width="50%"><img src="screenshots/step3-recipes.png" alt="Step 3: Recipe suggestions"></td>
+<td width="50%"></td>
+</tr>
+<tr>
+<td align="center"><sub>Step 3 — Recipe suggestions</sub></td>
+<td></td>
+</tr>
+</table>
+
+---
+
 ## What it does
 
 PlateUp uses GPT-4o vision to scan your fridge photo, identify the ingredients, and generate 3 personalised dinner recipes you can cook tonight — complete with AI-generated dish photos and beginner-friendly step-by-step instructions.
@@ -141,8 +172,6 @@ You'll get **3 recipe cards**, each showing:
 - **From your fridge** — the ingredients from your scan that the recipe uses (green chips)
 - **Also need** — any 1–2 specific items the dish can't do without (amber chips); oil, salt, pepper, garlic and onion are always assumed available
 
-![Step 3: Expanded steps](screenshots/step3-steps.png)
-
 Click **How to make it** on any card to expand the step-by-step cooking instructions. Click again to collapse.
 
 **Actions at the bottom:**
@@ -190,8 +219,7 @@ plateup-ai/
     ├── step1-apikey.png
     ├── step2-ingredients.png
     ├── step2-cuisine.png
-    ├── step3-recipes.png
-    └── step3-steps.png
+    └── step3-recipes.png
 ```
 
 Capture them by opening `index.html` in a browser and using your OS screenshot tool or the browser's built-in screenshot (DevTools → device toolbar → screenshot icon in Chrome).
